@@ -1,5 +1,9 @@
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <utility>
 #include "../../include/gpd/caffe_classifier.h"
-
+#include <algorithm>
 
 CaffeClassifier::CaffeClassifier(const std::string& model_file, const std::string& weights_file, bool use_gpu)
 {
@@ -20,14 +24,17 @@ CaffeClassifier::CaffeClassifier(const std::string& model_file, const std::strin
   input_layer_ = boost::static_pointer_cast < caffe::MemoryDataLayer < float > >(net_->layer_by_name("data"));
 }
 
+// sam: utility
+bool comp(std::pair<int,float> a, std::pair<int,float> b) {
+  return a.second > b.second;
+}
 
 std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& image_list)
 {
   int batch_size = input_layer_->batch_size();
   int num_iterations = (int) ceil(image_list.size() / (double) batch_size);
   float loss = 0.0;
-  std::cout << "# images: " << image_list.size() << ", # iterations: " << num_iterations << ", batch size: "
-    << batch_size << "\n";
+  std::cout << "# images: " << image_list.size() << ", # iterations: " << num_iterations << ", batch size: " << batch_size << "\n";
 
   std::vector<float> predictions;
 
@@ -55,7 +62,7 @@ std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& i
         sub_image_list.push_back(empty_mat);
       }
     }
-
+ 
     std::vector<int> label_list;
     label_list.resize(sub_image_list.size());
 
@@ -75,7 +82,43 @@ std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& i
       predictions.push_back(out[2 * l + 1] - out[2 * l]);
 //      std::cout << "positive score: " << out[2 * l + 1] << ", negative score: " << out[2 * l] << "\n";
     }
-  }
+  
+// FRI II BWI GROUP STUFF FOLLOWS
 
+    std::cout << "BWI GOT HERE" << std::endl;
+    std::vector< std::pair<int,float> > sorting;
+    for (int i=0; i<predictions.size(); i++) {
+        if(predictions[i] > 0.0) {
+            std::cout << predictions[i] << std::endl;
+            sorting.push_back(std::make_pair(i,predictions[i]));
+        }
+    }
+    std::sort(sorting.begin(), sorting.end(), comp);
+
+    //ofstream myfile;
+    //myfile.open("GOT_HERE.txt");
+    //myfile << ""
+    cv::FileStorage file ("/home/ladybird/Desktop/bwi_training_grasp_images.yml", cv::FileStorage::APPEND);
+    for (int i=0; i<sorting.size() && i<10; i++) {
+    /*    file << "score: " << sorting[i].second << "\n";
+        for (int j=0; j<sub_image_list[sorting[i].first].rows; j++) {
+            const float* Mj = sub_image_list[sorting[i].first].ptr<float>(j);
+            for (int k=0; k<sub_image_list[sorting[i].first].cols; k++) {
+                file << Mj[k] << " ";
+            }
+            file << "\n";
+        }
+    */
+        file << "double" << sorting[i].second;
+        std::stringstream ss;
+        ss << "GraspImage" << i;
+        file << ss.str() << sub_image_list[i];
+        cv::Mat image = sub_image_list[sorting[i].first];
+        file << "image" << image;
+            //sub_image_list[i];
+    }
+    file.release();
+  
+  }
   return predictions;
 }

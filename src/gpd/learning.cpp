@@ -115,6 +115,7 @@ std::vector<cv::Mat> Learning::createImages(const CloudCamera& cloud_cam,
   }
   else if (image_params_.num_channels_ == 15) // 15 channels image
   {
+    // sam: save these
     return createImages15Channels(hand_set_list, nn_points_list, is_valid, image_dims);
   }
 

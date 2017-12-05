@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.8)
 project(gpd)
 
 ## Find catkin macros and libraries
@@ -26,7 +26,7 @@ include_directories(${GENERATOR_LIB_INCLUDE_DIR})
 # CAFFE
 IF(NOT EXISTS ${CAFFE_DIR})
   SET(CAFFE_DIR "$ENV{CAFFE_DIR}")
-  SET(CAFFE_DIR "/home/andreas/software/caffe/build")
+  SET(CAFFE_DIR "/home/ladybird/catkin_ws/src/caffe/build")
 ENDIF()
 MESSAGE("CAFFE_DIR: " ${CAFFE_DIR})
 find_package(Caffe)
