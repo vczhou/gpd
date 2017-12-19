@@ -30,7 +30,9 @@ GraspDetectionNode::GraspDetectionNode(ros::NodeHandle& node) : has_cloud_(false
   int cloud_type;
   node.param("cloud_type", cloud_type, POINT_CLOUD_2);
   std::string cloud_topic;
-  node.param("cloud_topic", cloud_topic, std::string("/camera/depth_registered/points"));
+  //TODO This is the topic gpd is listening for
+  // Changed from: node.param("cloud_topic", cloud_topic, std::string("/camera/depth_registered/points"));
+  node.param("cloud_topic",cloud_topic, std::string("/table_object_detection_node/cloud"));
   std::string samples_topic;
   node.param("samples_topic", samples_topic, std::string(""));
   std::string rviz_topic;

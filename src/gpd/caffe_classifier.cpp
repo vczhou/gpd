@@ -38,6 +38,8 @@ std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& i
 
   std::vector<float> predictions;
 
+  std::vector< std::pair< int , float > > sorting;
+
   // Process the images in batches.
   for (int i = 0; i < num_iterations; i++)
   {
@@ -83,24 +85,13 @@ std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& i
 //      std::cout << "positive score: " << out[2 * l + 1] << ", negative score: " << out[2 * l] << "\n";
     }
   
-// FRI II BWI GROUP STUFF FOLLOWS
-
-    std::cout << "BWI GOT HERE" << std::endl;
-    std::vector< std::pair<int,float> > sorting;
-    for (int i=0; i<predictions.size(); i++) {
-        if(predictions[i] > 0.0) {
-            std::cout << predictions[i] << std::endl;
-            sorting.push_back(std::make_pair(i,predictions[i]));
-        }
-    }
-    std::sort(sorting.begin(), sorting.end(), comp);
 
     //ofstream myfile;
     //myfile.open("GOT_HERE.txt");
     //myfile << ""
-    cv::FileStorage file ("/home/ladybird/Desktop/bwi_training_grasp_images.yml", cv::FileStorage::APPEND);
-    for (int i=0; i<sorting.size() && i<10; i++) {
-    /*    file << "score: " << sorting[i].second << "\n";
+/*    for (int i1=0; i1<sorting.size() && i1<10; i1++) {
+	***This stuff is useless code***
+        file << "score: " << sorting[i].second << "\n";
         for (int j=0; j<sub_image_list[sorting[i].first].rows; j++) {
             const float* Mj = sub_image_list[sorting[i].first].ptr<float>(j);
             for (int k=0; k<sub_image_list[sorting[i].first].cols; k++) {
@@ -108,17 +99,43 @@ std::vector<float> CaffeClassifier::classifyImages(const std::vector<cv::Mat>& i
             }
             file << "\n";
         }
-    */
+   	***end of useless code*** 
         file << "double" << sorting[i].second;
-        std::stringstream ss;
-        ss << "GraspImage" << i;
-        file << ss.str() << sub_image_list[i];
-        cv::Mat image = sub_image_list[sorting[i].first];
+        //std::stringstream ss;
+        //ss << "GraspImage" << i;
+        //file << ss.str() << sub_image_list[sorting[i].first];
+        cv::Mat image = sub_image_list[sorting[i1].first];
         file << "image" << image;
-            //sub_image_list[i];
-    }
-    file.release();
-  
+        std::cout << i1 << "th iteration completed\n";
+    }*/
+//    std::cout << "Releasing...\n";
+  //  file.release();
+ 
   }
+// FRI II BWI GROUP STUFF
+    int num_save = 50;
+
+//    std::vector< std::pair<int,float> > sorting;
+    for (int i1=0; i1<predictions.size(); i1++) {
+        if(predictions[i1] > 0.0) {
+//            sorting.push_back(std::make_pair(i1,predictions[i1]));
+		sorting.push_back(std::make_pair(i1, predictions[i1]));
+        }
+    }
+    std::sort(sorting.begin(), sorting.end(), comp);
+	if(sorting.size() > num_save)
+		sorting.resize(num_save);
+
+	for(int i = 0; i < sorting.size(); i++){
+		std::cout << sorting[i].second;
+	}
+std::cout << "Size of predictions: " << predictions.size() << std::endl << "Size of image_list: " << image_list.size() << std::endl;
+  cv::FileStorage file("/home/ladybird/Desktop/bwi_training_grasp_images.yml",cv::FileStorage::APPEND);
+	for(int i = 0; i < sorting.size(); i++){
+		file << "score" << sorting[i].second;
+		cv::Mat image = image_list[sorting[i].first];
+		file << "image" << image;
+	}
+  file.release();
   return predictions;
 }
